@@ -54,8 +54,8 @@ pipeline TreesPipeline {
     // 10. Next, we interpret the text file as sheet.
     // A sheet only contains text cells and is useful for manipulating the shape of data before assigning more strict value types to cells.
     block TreesCSVInterpreter oftype CSVInterpreter { 
-           delimiter: ";";
-       }
+        delimiter: ";";
+    }
 
     // 11. We can write into cells of a sheet using the CellWriter blocktype.
     block NameHeaderWriter oftype CellWriter {
@@ -72,10 +72,7 @@ pipeline TreesPipeline {
     block OneColumnDeleter oftype ColumnDeleter {
     delete: [column E];
     }
-    constraint GeopointScale oftype RangeConstraint {
-    lowerBound: 1;
-    upperBound: 3;
-    }
+   
     // 14. As a next step, we interpret the sheet as a table by adding structure.
     // We define a valuetype per column that specifies the data type of the column.
     // Rows that include values that are not valid according to the their valuetypes are dropped automatically. 
@@ -83,7 +80,7 @@ pipeline TreesPipeline {
         header: true;
         columns: [
             "lfd_nr" oftype integer,
-            "stadtteil" oftype text,
+            "stadtteil" oftype StadtteilStringOnly,
             "standort" oftype text,
             "baumart_botanisch" oftype text,
             "baumart_deutsch" oftype text,
@@ -91,7 +88,18 @@ pipeline TreesPipeline {
             "baumfamilie" oftype text,
         ];
     }
-
+   
+    
+    // valuetype GeopointScale oftype text {
+    // constraints: [
+    //     GeopointScale,
+    // ];
+    // }
+   
+    // constraint GeopointScale oftype RangeConstraint {
+    // lowerBound: 1;
+    // upperBound: 3;
+    // }
     // 15. As a last step, we load the table into a sink,
     // here into a sqlite file.
     // The structural information of the table is used
@@ -100,7 +108,15 @@ pipeline TreesPipeline {
         table: "Trees";
         file: "./trees.sqlite";
     }
-
+    valuetype StadtteilStringOnly oftype text {
+        constraints: [
+            StadtteilString
+        ];
+        }
+   
+    constraint StadtteilString oftype AllowlistConstraint {
+        allowlist: ["Furth-"];
+    } 
     // 16. Congratulations!
     // You can now use the sink for your data analysis, app, 
     // or whatever you want to do with the cleaned data.  
