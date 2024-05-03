@@ -84,22 +84,21 @@ pipeline TreesPipeline {
             "standort" oftype text,
             "baumart_botanisch" oftype text,
             "baumart_deutsch" oftype text,
-            "id" oftype text,
+            "id" oftype GeopointScale,
             "baumfamilie" oftype text,
         ];
     }
    
     
-    // valuetype GeopointScale oftype text {
-    // constraints: [
-    //     GeopointScale,
-    // ];
-    // }
+    valuetype GeopointScale oftype text {
+    constraints: [
+        GeopointScale,
+    ];
+    }
    
-    // constraint GeopointScale oftype RangeConstraint {
-    // lowerBound: 1;
-    // upperBound: 3;
-    // }
+     constraint GeopointScale oftype RegexConstraint {
+        regex: /^\d{1,3}\.\d+,\s\d{1,3}\.\d+$/;
+     }
     // 15. As a last step, we load the table into a sink,
     // here into a sqlite file.
     // The structural information of the table is used
@@ -115,7 +114,7 @@ pipeline TreesPipeline {
         }
    
     constraint StadtteilString oftype AllowlistConstraint {
-        allowlist: ["Furth-"];
+        allowlist: ["Furth-Mitte", "Furth-Nord", "Furth-Süd"];
     } 
     // 16. Congratulations!
     // You can now use the sink for your data analysis, app, 
