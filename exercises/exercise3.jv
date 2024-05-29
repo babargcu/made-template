@@ -1,0 +1,150 @@
+// SPDX-FileCopyrightText: 2023 Friedrich-Alexander-Universitat Erlangen-Nurnberg
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// Example 1: GoodTransport
+// Learning goals:
+// - Understand the core concepts pipeline, block, and pipe
+// - Understand the general structure of a pipeline
+
+// 1. This Jayvee model describes a pipeline 
+// from a CSV file in the web 
+// to a SQLite file sink.
+pipeline TransportGoodsPipeline {
+
+// 2. We describe the structure of the pipeline,
+    // usually at the top of the pipeline.
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the block GoodsExtractor
+    // with the block GoodsTextFileInterpreter.
+
+    GoodsExtractor
+        -> TextFileInterpret
+        -> CSVFileInterpret 
+        -> RowRemover
+        -> ColumnSelector
+        -> TransportGoodsHeaderWriter
+        -> AmountHeaderWriter
+        -> TableInterpret
+        -> UppercaseFebruaryTransformer
+        -> DataLoader;
+
+    block GoodsExtractor oftype HttpExtractor    
+    {
+        // 8. Properties are assigned to concrete values.
+        // Here, we specify the URL where the file shall be downloaded from.
+        url: "https://www-genesis.destatis.de/genesis/downloads/00/tables/46131-0014_00.csv";
+    }
+
+    block TextFileInterpret oftype TextFileInterpreter {  }
+
+    block CSVFileInterpret oftype CSVInterpreter 
+    {
+        delimiter: ";";
+    }
+
+    block RowRemover oftype RowDeleter
+    {
+        delete: [row 41338, row 41339,
+         row 1, row 2, row 3, row 4, row 5, row 6, row 7];
+    }
+
+
+    block ColumnSelector oftype CellRangeSelector
+    {
+        select: range A1:AU*;
+    } 
+    
+    block TransportGoodsHeaderWriter oftype CellWriter
+    {
+        at: range A1:E1;
+        write: ["year", "month", "goods_id", "goods_name", "goods_source"];
+    }
+    block AmountHeaderWriter oftype CellWriter
+    {
+        at: range AT1:AU1;
+        write: [ "abroad", "total"];
+    }
+    // 14. As a next step, we interpret the sheet as a table by adding structure.
+    // We define a valuetype per column that specifies the data type of the column.
+    // Rows that include values that are not valid according to the their valuetypes are dropped automatically. 
+    block TableInterpret oftype TableInterpreter 
+    {
+        header: true;
+        columns: [
+            "year" oftype posInteger,
+
+            "month" oftype GermanMonth,
+            "goods_id" oftype nst7,
+
+            "goods_name" oftype text,
+            "goods_source" oftype text, 
+            "abroad" oftype posInteger,
+            "total" oftype posInteger,  
+        ];
+    }
+    
+    // check positive integers
+    valuetype posInteger oftype integer
+    {
+        constraints: [checkposInteger];
+    }
+    constraint checkposInteger on decimal:value >= 0;
+
+
+    valuetype nst7 oftype text
+    {
+        constraints: [addNST7];
+    }
+    constraint addNST7 oftype RegexConstraint
+    {
+        regex: /^NST7-[A-Z0-9]{3}$/;
+    }
+
+    valuetype GermanMonth oftype text
+    {
+        constraints: [allowGermanMonth];
+    }
+    constraint allowGermanMonth oftype AllowlistConstraint {
+        allowlist:['Januar','Februar',
+        'März','April','Mai','Juni','Juli',
+        'August','September','Oktober',
+        'November','Dezember'];
+    }
+
+    transform MonthToUppercase 
+    {
+        from lowerCaseMonth oftype text;
+        to upperCaseMonth oftype text;
+
+        upperCaseMonth: lowerCaseMonth 
+        replace /Januar/ with 'JANUAR';
+    }
+    
+    transform FebruaryToUppercase
+    {
+        from inputMonth oftype text;
+
+        to outputMonth oftype text;
+
+
+        outputMonth: inputMonth 
+        replace /Februar/ with 'FEBRUAR';
+    }
+
+
+    block UppercaseFebruaryTransformer oftype TableTransformer
+    {
+        inputColumns: ['month'];
+        outputColumn: 'month';
+
+        use: FebruaryToUppercase;
+    }
+
+    block DataLoader oftype SQLiteLoader {
+        table: "goods";
+        file: "transportedGoodsByTrain.sqlite";
+    }
+}
