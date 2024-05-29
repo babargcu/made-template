@@ -38,7 +38,9 @@ pipeline TransportGoodsPipeline {
         url: "https://www-genesis.destatis.de/genesis/downloads/00/tables/46131-0014_00.csv";
     }
 
-    block TextFileInterpret oftype TextFileInterpreter {  }
+    block TextFileInterpret oftype TextFileInterpreter {
+        encoding: "latin3";
+    }
 
     block CSVFileInterpret oftype CSVInterpreter 
     {
