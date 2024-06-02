@@ -6,8 +6,8 @@ The project aims to analyze and compare the winter and summer climate patterns i
 
 Rational:
 
-How many days during the winter season experience temperatures below the indoor comfort threshold (20 °C) and above the outdoor average temperature?
-How many days during the summer season reach or exceed the threshold for physiological discomfort?
+How does the heating demand vary during winter season between different locations in Milan?
+How many days during the summer season reach or exceed the threshold for physiological discomfort and physiological danger?
 
 Datasources
 
