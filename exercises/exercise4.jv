@@ -1,0 +1,124 @@
+// SPDX-FileCopyrightText: 2023 Friedrich-Alexander-Universitat Erlangen-Nurnberg
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// Example 1: Tempeartures
+// Learning goals:
+// - Understand the core concepts pipeline, block, and pipe
+// - Understand the general structure of a pipeline
+
+// 1. This Jayvee model describes a pipeline 
+// from a CSV file in the web 
+// to a SQLite file sink.
+
+pipeline TemperaturePipeline
+{
+
+    TemperatureExtractor
+        -> TemperatureArchiveInterpreter
+        -> TemperatureFilePicker
+        -> TemperatureTextFileInterpreter
+        
+        -> TemperatureCSVInterpreter 
+        -> TemperatureColumnDeleter
+        -> TemperatureRowDeleter
+
+        -> TemperatureCellSelector
+        -> TemperatureTableInterpreter
+        -> TempTransformer
+        -> BatteryTempTransformer
+        -> TemperatureLoader;
+
+    block TemperatureExtractor oftype HttpExtractor 
+    {
+        url: "https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip";
+    } 
+
+    block TemperatureArchiveInterpreter oftype ArchiveInterpreter 
+    {
+        archiveType: "zip";
+
+    }
+    block TemperatureFilePicker oftype FilePicker      
+    {
+
+        path: "/data.csv";
+    }
+
+    block TemperatureTextFileInterpreter oftype TextFileInterpreter {
+        
+    encoding: "utf8";
+
+    }
+    block TemperatureCSVInterpreter oftype CSVInterpreter 
+    {
+        delimiter: ";";
+    }
+    
+
+    block TemperatureColumnDeleter oftype ColumnDeleter
+    {
+        delete: [column F,column G,column H,column I];
+    }
+
+    block TemperatureRowDeleter oftype RowDeleter 
+    {
+        delete: [row 1];
+    }
+
+
+    block TemperatureCellSelector oftype CellRangeSelector   
+    {
+        select: range A1:J*;
+    }
+
+    block TemperatureTableInterpreter oftype TableInterpreter 
+    {
+        header : false;
+        columns : [
+            "id" oftype positiveInt,
+            "producer" oftype text,
+            "model" oftype text,
+            "month" oftype integer,
+            "temperature" oftype decimal,
+            "battery_temperature" oftype decimal,
+        ];
+    }
+    
+  
+    block TempTransformer oftype TableTransformer 
+    {
+        inputColumns: ['temperature'];
+        outputColumn: 'temperature';
+        use: CelsiusToFahrenheit;
+    }
+
+    block BatteryTempTransformer oftype TableTransformer 
+    {
+        inputColumns: ['battery_temperature'];
+        outputColumn: 'battery_temperature';
+        use: CelsiusToFahrenheit;
+    }
+
+    valuetype positiveInt oftype integer
+    {
+        constraints: [setValidation];
+    }
+    constraint setValidation on decimal:
+        value > 0;
+
+      transform CelsiusToFahrenheit 
+    {
+        from tempCelsius oftype decimal;
+        to tempFahrenheit oftype decimal;
+
+        tempFahrenheit: (tempCelsius * 9/5) + 32;
+    }
+
+    block TemperatureLoader oftype SQLiteLoader 
+    {
+        table: "temperatures";
+        file: "./temperatures.sqlite";
+    }
+
+}
