@@ -1,0 +1,99 @@
+// SPDX-FileCopyrightText: 2023 Friedrich-Alexander-Universitat Erlangen-Nurnberg
+//
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// Example : GTFs
+// Learning goals:
+// - Understand the core concepts pipeline, block, and pipe
+// - Understand the general structure of a pipeline
+
+// 1. This Jayvee model describes a pipeline 
+// from a CSV file in the web 
+// to a SQLite file sink.
+pipeline GtfsPipeline
+{
+
+
+ // 2. We describe the structure of the pipeline,
+    // usually at the top of the pipeline.
+    // by connecting blocks via pipes. 
+
+    // 3. Syntax of a pipe
+    // connecting the blockGtfsExtractor
+    // with the blockGtfsTextFileInterpreter.
+    GtfsExtractor
+        -> GtfsArchiveInterpreter
+        -> GtfsFilePicker
+        -> GtfsTextFileInterpreter
+        -> GtfsCSVInterpreter 
+        -> GtfsTableInterpreter
+        -> GtfsLoader;
+
+    block GtfsExtractor oftype HttpExtractor 
+    {
+        // 8. Properties are assigned to concrete values.
+        // Here, we specify the URL where the file shall be downloaded from.
+        url: "https://gtfs.rhoenenergie-bus.de/GTFS.zip";
+    } 
+
+    block GtfsArchiveInterpreter oftype ArchiveInterpreter 
+    {
+        archiveType: "zip";
+
+    }
+    block GtfsFilePicker oftype FilePicker  {
+
+        path: "/Gtfs.txt";
+
+    }
+
+    block GtfsTextFileInterpreter oftype TextFileInterpreter {
+        
+        encoding:"utf8";
+    }
+
+    block GtfsCSVInterpreter oftype CSVInterpreter 
+    {
+        delimiter: ",";      enclosing: '"';
+    }
+    
+
+    block GtfsTableInterpreter oftype TableInterpreter 
+    {
+        header : true;
+
+        columns : [
+            "stop_id" oftype integer,
+            "stop_name" oftype text,
+            "stop_lat" oftype Coordinates,
+            "stop_lon" oftype Coordinates,
+            "zone_id" oftype Zone,
+        ];
+    }
+  
+
+    constraint CoordinateValue on decimal:
+    value >= -90 and value <= 90;
+    
+    valuetype Coordinates oftype decimal {
+        constraints:[CoordinateValue];
+    }
+    
+
+    constraint SpecificZoneConstraint on integer:value == 1645;
+
+
+    valuetype Zone oftype integer {
+
+        constraints:[SpecificZoneConstraint];
+        
+    }
+   
+  block GtfsLoader oftype SQLiteLoader 
+    {
+        file: "gtfs.sqlite";
+        table: "stops";
+
+    }
+  
+}
