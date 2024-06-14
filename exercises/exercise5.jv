@@ -70,16 +70,6 @@ pipeline GtfsPipeline
             "zone_id" oftype Zone,
         ];
     }
-  
-
-    constraint CoordinateValue on decimal:
-    value >= -90 and value <= 90;
-    
-    valuetype Coordinates oftype decimal {
-        constraints:[CoordinateValue];
-    }
-    
-
     constraint SpecificZoneConstraint on integer:value == 1645;
 
 
@@ -87,6 +77,13 @@ pipeline GtfsPipeline
 
         constraints:[SpecificZoneConstraint];
 
+    }
+
+    constraint CoordinateValue on decimal:
+    value >= -90 and value <= 90;
+    
+    valuetype Coordinates oftype decimal {
+        constraints:[CoordinateValue];
     }
    
   block GtfsLoader oftype SQLiteLoader 
