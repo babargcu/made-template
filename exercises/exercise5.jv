@@ -43,7 +43,7 @@ pipeline GtfsPipeline
     }
     block GtfsFilePicker oftype FilePicker  {
 
-        path: "/Gtfs.txt";
+        path: "/stops.txt";
 
     }
 
@@ -86,7 +86,7 @@ pipeline GtfsPipeline
     valuetype Zone oftype integer {
 
         constraints:[SpecificZoneConstraint];
-        
+
     }
    
   block GtfsLoader oftype SQLiteLoader 
