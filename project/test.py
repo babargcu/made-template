@@ -38,7 +38,7 @@ class TestETLPipeline(unittest.TestCase):
         load(df)
         
         # Check if the SQLite database file exists
-        self.assertTrue(os.path.exists('../data/milan_climate.db'))
+        self.assertTrue(os.path.exists('../data/milan_climate.sqlite'))
         
 if __name__ == '__main__':
     unittest.main()

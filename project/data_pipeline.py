@@ -46,7 +46,7 @@ def load(df: pd.DataFrame) -> None:
     # Ensure the 'data' directory exists
     data_directory = os.path.join('..', 'data')
     # Path to the SQLite database in the 'data' directory
-    db_path = os.path.join(data_directory, 'milan_climate.db')
+    db_path = os.path.join(data_directory, 'milan_climate.sqlite')
     disk_engine = create_engine(f'sqlite:///{db_path}')
     
     # Save the DataFrame to the SQLite database
