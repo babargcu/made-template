@@ -25,10 +25,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Create database 
-      run: |
-        mkdir -p data
-        sqlite3 data/milan_climate.sqlite <<EOF
+    - name: Ensure data directory exists
+      run: mkdir -p data
+
+    - name: Run data pipeline to create database
+      run: python3 project/data_pipeline.py
 
     - name: Give execute permissions to tests.sh
       run: chmod +x ./project/tests.sh

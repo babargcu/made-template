@@ -24,8 +24,27 @@ class TestETLPipeline(unittest.TestCase):
         
     def test_transform(self):
         # Test the transformation process
-        df_summer = pd.DataFrame({'Metric': ['Temperature'], 'Milano Centro': [25]})
-        df_winter = pd.DataFrame({'Metric': ['Temperature'], 'Milano Centro': [5]})
+        columns = ['Metric', "Milano Bicocca", "Milano Bocconi", "Milano Bovisa", "Milano Centro", "Milano Citta' Studi", "Milano San Siro", "Milano Sud"]
+        df_summer = pd.DataFrame({
+            'Metric': ['Temperature'],
+            'Milano Bicocca': [25],
+            'Milano Bocconi': [26],
+            'Milano Bovisa': [24],
+            'Milano Centro': [25],
+            "Milano Citta' Studi": [23],
+            'Milano San Siro': [27],
+            'Milano Sud': [28]
+        })
+        df_winter = pd.DataFrame({
+            'Metric': ['Temperature'],
+            'Milano Bicocca': [5],
+            'Milano Bocconi': [6],
+            'Milano Bovisa': [4],
+            'Milano Centro': [5],
+            "Milano Citta' Studi": [3],
+            'Milano San Siro': [7],
+            'Milano Sud': [8]
+        })
         df_transformed = transform(df_summer, df_winter)
         
         self.assertIsInstance(df_transformed, pd.DataFrame)
