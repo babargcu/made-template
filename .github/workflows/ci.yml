@@ -17,7 +17,7 @@ jobs:
       with:
         python-version: '3.8'  
     
-    - name: Create database and tables
+    - name: Create database 
       run: |
         mkdir -p data
         sqlite3 data/milan_climate.sqlite <<EOF
