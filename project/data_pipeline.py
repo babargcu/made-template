@@ -41,15 +41,10 @@ def transform(df_summer: pd.DataFrame, df_winter: pd.DataFrame) -> pd.DataFrame:
     
     return df
 
-def load(df: pd.DataFrame) -> None:
-    """Load data into a SQLite database."""
-    # Ensure the 'data' directory exists
-    data_directory = os.path.join('..', 'data')
-    # Path to the SQLite database in the 'data' directory
-    db_path = os.path.join(data_directory, 'milan_climate.sqlite')
+def load(df):
+    db_path = os.path.join(os.getcwd(), '../data', 'milan_climate.sqlite')  # Use absolute path
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)  # Ensure directory exists
     disk_engine = create_engine(f'sqlite:///{db_path}')
-    
-    # Save the DataFrame to the SQLite database
     df.to_sql('climate_data', disk_engine, if_exists='replace', index=False)
 
 # Run the ETL process
