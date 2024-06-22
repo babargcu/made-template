@@ -24,7 +24,9 @@ jobs:
       run: |
         mkdir -p data
         sqlite3 data/milan_climate.sqlite <<EOF
-
+    
+    - name: Give execute permissions to tests.sh
+      run: chmod +x ./project/tests.sh
+    
     - name: Run tests
-      run: |
-        ./project/tests.sh
+      run: ./project/tests.sh
